@@ -13,6 +13,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using Mcs.Usb;
 using System.Text.RegularExpressions;
+using Closed_loop_feedback_gui;
 
 namespace MCS_USB_Windows_Forms_Application1
 {
@@ -219,6 +220,11 @@ namespace MCS_USB_Windows_Forms_Application1
 
             series0Channel.SelectedIndex = 0;
             series1Channel.SelectedIndex = 1;
+
+            stimulationFrequencyComboBox.DataSource = new BindingSource(pulseParameters.blankDurations, null);
+            stimulationFrequencyComboBox.DisplayMember = "Key";
+            stimulationFrequencyComboBox.ValueMember = "Key";
+            stimulationFrequencyComboBox.SelectedValue = pulseParameters.defaultFrequency;
 
         }
 
@@ -492,7 +498,7 @@ namespace MCS_USB_Windows_Forms_Application1
             if (data > max) max = (int) Math.Ceiling(data);
         }
 
-        private void UploadStimulationPatternsToHS(CMcsUsbListEntryNet port, int delta_DBS_amp, out string uploadErrorMessage)
+        private void UploadStimulationPatternsToHS(CMcsUsbListEntryNet port, int delta_DBS_amp, int stim_frequency, out string uploadErrorMessage)
         {
             uploadErrorMessage = "";
 
@@ -534,7 +540,12 @@ namespace MCS_USB_Windows_Forms_Application1
                 int[] ampl = new[] { 10000, -10000, 0 };
 
                 // Define the duraion vector of the 3 segments of the biphasic pulse (in us)
-                ulong[] dur = new ulong[] { 80, 80, 7600 };
+                ulong positivePulseDuration = 80;
+                ulong negativePulseDuration = 80;
+                ulong blankDuration = pulseParameters.blankDurations[stim_frequency];
+
+                ulong[] dur = new ulong[] {positivePulseDuration, negativePulseDuration, blankDuration };
+                //ulong[] dur = new ulong[] { 80, 80, 7600 };
 
                 func.SetHeadstageSamplingActive(false, other_receiver + 0);
                 // Define and upload each stimulation pattern
@@ -594,8 +605,9 @@ namespace MCS_USB_Windows_Forms_Application1
 
             // Define the step between pulses amplitude
             int delta_DBS_amp = (MaxValue - MinValue) / 16;    // in nA
+            int stimFrequency = (int)stimulationFrequencyComboBox.SelectedValue;
 
-            UploadStimulationPatternsToHS(port, delta_DBS_amp, out string uploadErrorMessage);
+            UploadStimulationPatternsToHS(port, delta_DBS_amp, stimFrequency, out string uploadErrorMessage);
             
             if (String.IsNullOrEmpty(uploadErrorMessage))
             {
@@ -776,8 +788,9 @@ namespace MCS_USB_Windows_Forms_Application1
 
             // Define the step between pulses amplitude
             int delta_DBS_amp = (MaxValue - MinValue) / 16;    // in nA
+            int stimFrequency = (int) stimulationFrequencyComboBox.SelectedValue;
 
-            UploadStimulationPatternsToHS(port, delta_DBS_amp, out string uploadErrorMessage);
+            UploadStimulationPatternsToHS(port, delta_DBS_amp, stimFrequency, out string uploadErrorMessage);
 
             if (String.IsNullOrEmpty(uploadErrorMessage))
             {
@@ -852,6 +865,13 @@ namespace MCS_USB_Windows_Forms_Application1
         {
             Form DebugForm = new DebugControlsForm(this, mea, UsbDeviceList);
             DebugForm.Show();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            int stimFrequency = (int) stimulationFrequencyComboBox.SelectedValue;
+            ulong blankDuration = pulseParameters.blankDurations[stimFrequency];
+            MessageBox.Show(String.Format("Selected Stim Frequency: {0}; blank duration {1}", stimFrequency, blankDuration));
         }
     }
 }

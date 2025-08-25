@@ -70,6 +70,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="pulseParameters.cs" />
     <EmbeddedResource Include="Dacq.resx">
       <DependentUpon>Dacq.cs</DependentUpon>
     </EmbeddedResource>
@@ -100,6 +101,9 @@
   <ItemGroup>
     <Content Include="icon.ico" />
     <Content Include="icon_large.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\DataSources\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
